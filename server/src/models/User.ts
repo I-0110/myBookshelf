@@ -1,23 +1,24 @@
-import { Schema, model, type Document } from 'mongoose';
+import mongoose from 'mongoose';
+import { Schema, Model, type Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 
 // import schema from Book.js
 import bookSchema from './Book.js';
-import type { BookDocument } from './Book.js';
+import type { IBook } from './Book.js';
 
-export interface UserDocument extends Document {
-  id: string;
-  username: string;
+export interface IUser extends Document {
+  _id: string;
+  name: string;
   email: string;
   password: string;
-  savedBooks: BookDocument[];
+  savedBooks: IBook[];
   isCorrectPassword(password: string): Promise<boolean>;
   bookCount: number;
 }
 
-const userSchema = new Schema<UserDocument>(
+const userSchema = new Schema<IUser>(
   {
-    username: {
+    name: {
       type: String,
       required: true,
       unique: true,
@@ -63,6 +64,6 @@ userSchema.virtual('bookCount').get(function () {
   return this.savedBooks.length;
 });
 
-const User = model<UserDocument>('User', userSchema);
+const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);
 
 export default User;
