@@ -1,4 +1,4 @@
-import User from '../models/index.js';
+import { User } from '../models/index.js';
 import { signToken, AuthenticationError } from '../utils/auth.js';
 
 interface Book {
@@ -62,24 +62,25 @@ const resolvers = {
   },
   Mutation: {
     addUser: async (_parent: any, { input }: AddUserArgs): Promise<Auth> => {
-      const user = await User.create({ input });
+      const user = await User.create(input) as User || null; 
+      const token = signToken(user.name, user.email, user._id); 
+      return { token, user };
+    },
+    login: async (_parent: any, { email, password }: LoginArgs): Promise<Auth> => {
+      const user = await User.findOne({ email });
+
       if (!user) {
-        throw new Error("Error creating user")
+        throw new AuthenticationError('Invalid credentials');
+      }
+
+      const correctPw = await user.isCorrectPassword(password); 
+
+      if (!correctPw) {
+        throw new AuthenticationError('Invalid credentials');
       }
 
       const token = signToken(user.name, user.email, user._id);
-      return { token, user };
-    },
-    login: async (_parent: any, { email, password }: LoginArgs ): Promise<Auth> => {
-      const user = await User.findOne({ email });
-      if (!user) {
-        throw new AuthenticationError(`Invalid credentials`);
-      }
-      const correctPw = await user.isCorrectPassword(password);
-      if (!correctPw) {
-        throw new AuthenticationError(`Invalid credentials`);
-      }
-      const token = signToken(user.name, user.email, user._id);
+
       return { token, user };
     },
     saveBook: async (_parent: any, { input }: BookArgs, context: Context): Promise<User | null> => {
@@ -97,18 +98,17 @@ const resolvers = {
       }
       throw new AuthenticationError(`Invalid book credentials`);
     },
-    removeBook: async (_parent: any, { bookId }: {bookId: string}, context: Context): Promise<User | null> => {
+    removeBook: async (_parent: any, { bookId }: { bookId: string }, context: Context) => {
       if (context.user) {
-        return await User.findOneAndDelete(
+        return await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { savedBooks: { bookId } } 
-          },
+          { $pull: { savedBooks: { bookId } } },
           { new: true }
         );
       }
       throw new AuthenticationError(`Invalid book credentials`);
+    },
     }
-  },
-};
+  };
 
 export default resolvers;
