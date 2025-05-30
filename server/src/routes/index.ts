@@ -1,18 +1,26 @@
-import type { Request, Response } from 'express';
 import express from 'express';
-const router = express.Router();
+import path from 'path';
+import { fileURLToPath } from 'url';
+import apiRouter from './api/index.js'; 
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+const app = express();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import apiRoutes from './api/index.js';
 
-router.use('/api', apiRoutes);
+// API routes
+app.use('/api', apiRouter);
 
-// serve up react front-end in production
-router.use((_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../../client/build/index.html'));
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Catch-all handler: for any request that doesn't match an API route
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-export default router;
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
