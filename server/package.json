@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/server.js",
   "type": "module",
- "scripts": {
+  "scripts": {
     "build": "npx tsc",
     "start": "npm run build && node dist/server.js --ignore client",
     "dev": "npx nodemon",
@@ -14,9 +14,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apollo/server": "^4.12.1",
     "bcrypt": "^4.0.1",
-    "brcypt": "^1.0.1",
     "express": "^4.19.2",
+    "graphql": "^16.11.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^8.0.0"
   },
